@@ -217,15 +217,17 @@ func main() {
 		log.Fatalf("couldn't connect to collectd: %v", err)
 	}
 
-	sleepInterval := 10 * time.Second
+	sleepInterval := time.Minute
 
 	log.Printf("starting event listener")
 
 	go statsCollector.eventListener(ctx)
 
+	ticker := time.NewTicker(sleepInterval)
+	defer ticker.Stop()
+
 	log.Printf("starting stats updater every %s", sleepInterval.String())
-	for {
+	for range ticker.C {
 		lastEventCount = statsCollector.writeToCollectd(statWriter, lastEventCount, sleepInterval)
-		time.Sleep(sleepInterval)
 	}
 }
