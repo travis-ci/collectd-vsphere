@@ -8,6 +8,8 @@ Collects metrics from vSphere and sends them to collectd.
 - `host/vsphere/operations-power_on_failure`: number of failed VM power on events
 - `host/vsphere/operations-power_off_success`: number of successful VM power off events
 - `host/vsphere/operations-power_off_failure`: number of failed VM power off events
+- `base-vm/vsphere/operations-clone_success`: number of successful VM clone events
+- `base-vm/vsphere/operations-clone_failure`: number of failed VM clone events
 
 ## Config
 

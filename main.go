@@ -27,6 +27,8 @@ type vSphereStatsCollector struct {
 	powerOnFailure  map[string]int64
 	powerOffSuccess map[string]int64
 	powerOffFailure map[string]int64
+	cloneSuccess    map[string]int64
+	cloneFailure    map[string]int64
 	eventCount      uint64
 }
 
@@ -47,6 +49,12 @@ func (c *vSphereStatsCollector) handleEvent(baseEvent types.BaseEvent) {
 	case *types.VmFailedToPowerOffEvent:
 		c.ensureHost(e.Host.Name)
 		c.powerOffFailure[e.Host.Name]++
+	case *types.VmClonedEvent:
+		c.ensureHost(e.SourceVm.Name)
+		c.cloneSuccess[e.SourceVm.Name]++
+	case *types.VmCloneFailedEvent:
+		c.ensureHost(e.Vm.Name)
+		c.cloneFailure[e.Vm.Name]++
 	}
 
 	c.eventCount++
@@ -64,6 +72,12 @@ func (c *vSphereStatsCollector) ensureHost(host string) {
 	}
 	if _, ok := c.powerOffFailure[host]; !ok {
 		c.powerOffFailure[host] = 0
+	}
+	if _, ok := c.cloneSuccess[host]; !ok {
+		c.cloneSuccess[host] = 0
+	}
+	if _, ok := c.cloneFailure[host]; !ok {
+		c.cloneFailure[host] = 0
 	}
 }
 
@@ -107,6 +121,18 @@ func (c *vSphereStatsCollector) writeToCollectd(w api.Writer, lastEventCount uin
 		}
 		for host, stat := range c.powerOffFailure {
 			err := w.Write(makeValueList(host, "power_off_failure", statTime, interval, stat))
+			if err != nil {
+				log.Printf("error sending data to collectd: %v", err)
+			}
+		}
+		for host, stat := range c.cloneSuccess {
+			err := w.Write(makeValueList(host, "clone_success", statTime, interval, stat))
+			if err != nil {
+				log.Printf("error sending data to collectd: %v", err)
+			}
+		}
+		for host, stat := range c.cloneFailure {
+			err := w.Write(makeValueList(host, "clone_failure", statTime, interval, stat))
 			if err != nil {
 				log.Printf("error sending data to collectd: %v", err)
 			}
@@ -176,6 +202,8 @@ func main() {
 		powerOnFailure:  make(map[string]int64, 0),
 		powerOffSuccess: make(map[string]int64, 0),
 		powerOffFailure: make(map[string]int64, 0),
+		cloneSuccess:    make(map[string]int64, 0),
+		cloneFailure:    make(map[string]int64, 0),
 	}
 
 	lastEventCount := statsCollector.eventCount
