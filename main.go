@@ -50,10 +50,10 @@ func (c *vSphereStatsCollector) handleEvent(baseEvent types.BaseEvent) {
 		c.ensureHost(e.Host.Name)
 		c.powerOffFailure[e.Host.Name]++
 	case *types.VmClonedEvent:
-		c.ensureHost(e.SourceVm.Name)
+		c.ensureBaseVM(e.SourceVm.Name)
 		c.cloneSuccess[e.SourceVm.Name]++
 	case *types.VmCloneFailedEvent:
-		c.ensureHost(e.Vm.Name)
+		c.ensureBaseVM(e.Vm.Name)
 		c.cloneFailure[e.Vm.Name]++
 	}
 
@@ -73,11 +73,14 @@ func (c *vSphereStatsCollector) ensureHost(host string) {
 	if _, ok := c.powerOffFailure[host]; !ok {
 		c.powerOffFailure[host] = 0
 	}
-	if _, ok := c.cloneSuccess[host]; !ok {
-		c.cloneSuccess[host] = 0
+}
+
+func (c *vSphereStatsCollector) ensureBaseVM(baseVM string) {
+	if _, ok := c.cloneSuccess[baseVM]; !ok {
+		c.cloneSuccess[baseVM] = 0
 	}
-	if _, ok := c.cloneFailure[host]; !ok {
-		c.cloneFailure[host] = 0
+	if _, ok := c.cloneFailure[baseVM]; !ok {
+		c.cloneFailure[baseVM] = 0
 	}
 }
 
