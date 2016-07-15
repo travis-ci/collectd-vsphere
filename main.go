@@ -38,29 +38,29 @@ func (c *vSphereStatsCollector) handleEvent(baseEvent types.BaseEvent) {
 
 	switch e := baseEvent.(type) {
 	case *types.VmPoweredOnEvent:
-		c.ensureHost(e.Host.Name)
+		c.ensureHostExists(e.Host.Name)
 		c.powerOnSuccess[e.Host.Name]++
 	case *types.VmFailedToPowerOnEvent:
-		c.ensureHost(e.Host.Name)
+		c.ensureHostExists(e.Host.Name)
 		c.powerOnFailure[e.Host.Name]++
 	case *types.VmPoweredOffEvent:
-		c.ensureHost(e.Host.Name)
+		c.ensureHostExists(e.Host.Name)
 		c.powerOffSuccess[e.Host.Name]++
 	case *types.VmFailedToPowerOffEvent:
-		c.ensureHost(e.Host.Name)
+		c.ensureHostExists(e.Host.Name)
 		c.powerOffFailure[e.Host.Name]++
 	case *types.VmClonedEvent:
-		c.ensureBaseVM(e.SourceVm.Name)
+		c.ensureBaseVMExists(e.SourceVm.Name)
 		c.cloneSuccess[e.SourceVm.Name]++
 	case *types.VmCloneFailedEvent:
-		c.ensureBaseVM(e.Vm.Name)
+		c.ensureBaseVMExists(e.Vm.Name)
 		c.cloneFailure[e.Vm.Name]++
 	}
 
 	c.eventCount++
 }
 
-func (c *vSphereStatsCollector) ensureHost(host string) {
+func (c *vSphereStatsCollector) ensureHostExists(host string) {
 	if _, ok := c.powerOnSuccess[host]; !ok {
 		c.powerOnSuccess[host] = 0
 	}
@@ -75,7 +75,7 @@ func (c *vSphereStatsCollector) ensureHost(host string) {
 	}
 }
 
-func (c *vSphereStatsCollector) ensureBaseVM(baseVM string) {
+func (c *vSphereStatsCollector) ensureBaseVMExists(baseVM string) {
 	if _, ok := c.cloneSuccess[baseVM]; !ok {
 		c.cloneSuccess[baseVM] = 0
 	}
