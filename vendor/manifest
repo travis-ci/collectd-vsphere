@@ -1,0 +1,67 @@
+{
+	"version": 0,
+	"dependencies": [
+		{
+			"importpath": "collectd.org/api",
+			"repository": "https://github.com/collectd/go-collectd",
+			"vcs": "git",
+			"revision": "9fc824c70f713ea0f058a07b49a4c563ef2a3b98",
+			"branch": "master",
+			"path": "/api",
+			"notests": true
+		},
+		{
+			"importpath": "collectd.org/cdtime",
+			"repository": "https://github.com/collectd/go-collectd",
+			"vcs": "git",
+			"revision": "9fc824c70f713ea0f058a07b49a4c563ef2a3b98",
+			"branch": "master",
+			"path": "cdtime",
+			"notests": true
+		},
+		{
+			"importpath": "collectd.org/format",
+			"repository": "https://github.com/collectd/go-collectd",
+			"vcs": "git",
+			"revision": "9fc824c70f713ea0f058a07b49a4c563ef2a3b98",
+			"branch": "master",
+			"path": "format",
+			"notests": true
+		},
+		{
+			"importpath": "collectd.org/network",
+			"repository": "https://github.com/collectd/go-collectd",
+			"vcs": "git",
+			"revision": "9fc824c70f713ea0f058a07b49a4c563ef2a3b98",
+			"branch": "master",
+			"path": "/network",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/davecgh/go-spew/spew",
+			"repository": "https://github.com/davecgh/go-spew",
+			"vcs": "git",
+			"revision": "5215b55f46b2b919f50a1df0eaa5886afe4e3b3d",
+			"branch": "master",
+			"path": "/spew",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/vmware/govmomi",
+			"repository": "https://github.com/vmware/govmomi",
+			"vcs": "git",
+			"revision": "15b6a1e7924db4c92c10158808efb36aa12a2aa0",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "golang.org/x/net/context",
+			"repository": "https://go.googlesource.com/net",
+			"vcs": "git",
+			"revision": "a728288923b47049b2ce791836767ffbe964a5bd",
+			"branch": "master",
+			"path": "/context",
+			"notests": true
+		}
+	]
+}
