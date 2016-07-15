@@ -2,4 +2,4 @@ language: go
 go: 1.6.2
 sudo: false
 install: true
-script: go test -v ./...
+script: go test -v $(go list ./... | grep -v /vendor/)
