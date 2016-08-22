@@ -1,0 +1,107 @@
+{
+	"version": 0,
+	"dependencies": [
+		{
+			"importpath": "collectd.org/api",
+			"repository": "https://github.com/collectd/go-collectd",
+			"vcs": "git",
+			"revision": "9fc824c70f713ea0f058a07b49a4c563ef2a3b98",
+			"branch": "master",
+			"path": "/api",
+			"notests": true
+		},
+		{
+			"importpath": "collectd.org/cdtime",
+			"repository": "https://github.com/collectd/go-collectd",
+			"vcs": "git",
+			"revision": "9fc824c70f713ea0f058a07b49a4c563ef2a3b98",
+			"branch": "master",
+			"path": "cdtime",
+			"notests": true
+		},
+		{
+			"importpath": "collectd.org/format",
+			"repository": "https://github.com/collectd/go-collectd",
+			"vcs": "git",
+			"revision": "9fc824c70f713ea0f058a07b49a4c563ef2a3b98",
+			"branch": "master",
+			"path": "format",
+			"notests": true
+		},
+		{
+			"importpath": "collectd.org/network",
+			"repository": "https://github.com/collectd/go-collectd",
+			"vcs": "git",
+			"revision": "9fc824c70f713ea0f058a07b49a4c563ef2a3b98",
+			"branch": "master",
+			"path": "/network",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/davecgh/go-spew/spew",
+			"repository": "https://github.com/davecgh/go-spew",
+			"vcs": "git",
+			"revision": "5215b55f46b2b919f50a1df0eaa5886afe4e3b3d",
+			"branch": "master",
+			"path": "/spew",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/pkg/errors",
+			"repository": "https://github.com/pkg/errors",
+			"vcs": "git",
+			"revision": "17b591df37844cde689f4d5813e5cea0927d8dd2",
+			"branch": "HEAD",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/urfave/cli",
+			"repository": "https://github.com/urfave/cli",
+			"vcs": "git",
+			"revision": "ee2e8aa5b22f55f006c27fd35765c62249a39aad",
+			"branch": "v2",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/vmware/govmomi",
+			"repository": "https://github.com/vmware/govmomi",
+			"vcs": "git",
+			"revision": "15b6a1e7924db4c92c10158808efb36aa12a2aa0",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "golang.org/x/net/context",
+			"repository": "https://go.googlesource.com/net",
+			"vcs": "git",
+			"revision": "a728288923b47049b2ce791836767ffbe964a5bd",
+			"branch": "master",
+			"path": "/context",
+			"notests": true
+		},
+		{
+			"importpath": "gopkg.in/check.v1",
+			"repository": "https://gopkg.in/check.v1",
+			"vcs": "git",
+			"revision": "4f90aeace3a26ad7021961c297b22c42160c7b25",
+			"branch": "v1",
+			"notests": true
+		},
+		{
+			"importpath": "gopkg.in/urfave/cli.v2",
+			"repository": "https://gopkg.in/urfave/cli.v2",
+			"vcs": "git",
+			"revision": "40a9813f6f73b9869899a8228b47edb32871d83a",
+			"branch": "v2",
+			"notests": true
+		},
+		{
+			"importpath": "gopkg.in/yaml.v2",
+			"repository": "https://gopkg.in/yaml.v2",
+			"vcs": "git",
+			"revision": "e4d366fc3c7938e2958e662b4258c7a89e1f0e3e",
+			"branch": "v2",
+			"notests": true
+		}
+	]
+}
