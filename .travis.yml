@@ -1,5 +1,25 @@
 language: go
 go: 1.6.2
 sudo: false
-install: true
-script: go test -v $(go list ./... | grep -v /vendor/)
+install:
+- make prereqs
+- make deps
+script:
+- make copyright
+- git diff --exit-code
+- git diff --cached --exit-code
+- make crossbuild
+
+env:
+  global:
+    - 'TRAVIS_COMMIT_SHORT="${TRAVIS_COMMIT:0:7}"'
+
+addons:
+  artifacts:
+    paths:
+    - "./build/linux/amd64/collectd-vsphere"
+    - "./build/darwin/amd64/collectd-vsphere"
+    target_paths:
+    - travis-ci/collectd-vsphere/$TRAVIS_BRANCH
+    - travis-ci/collectd-vsphere/$TRAVIS_COMMIT
+    - travis-ci/collectd-vsphere/$TRAVIS_COMMIT_SHORT
