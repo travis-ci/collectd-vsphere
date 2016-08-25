@@ -1,0 +1,35 @@
+hash: 22e3e6c97ff68857ed813b7d61ade34642f646552ab8a8efc89460fd4ca285b2
+updated: 2016-08-25T21:02:47.081173494+02:00
+imports:
+- name: collectd.org
+  version: 3f276a01c9ef9dba3e8013d3252a6243a7240473
+  subpackages:
+  - api
+  - cdtime
+  - network
+- name: github.com/urfave/cli
+  version: adf6897aa2891768c93dc274b9beb3c7e855bf0d
+- name: github.com/vmware/govmomi
+  version: c0c7ce63df7edd78e713257b924c89d9a2dac119
+  subpackages:
+  - event
+  - find
+  - list
+  - object
+  - property
+  - session
+  - task
+  - view
+  - vim25
+  - vim25/debug
+  - vim25/methods
+  - vim25/mo
+  - vim25/progress
+  - vim25/soap
+  - vim25/types
+  - vim25/xml
+- name: golang.org/x/net
+  version: 3a1f9ef983bc408afd0a9e63fd9c962ae853e543
+  subpackages:
+  - context
+testImports: []

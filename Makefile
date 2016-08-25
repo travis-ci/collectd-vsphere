@@ -30,7 +30,7 @@ clean:
 	find $(GOPATH)/pkg -wholename "*$(ROOT_PACKAGE)*.a" -delete
 
 .PHONY: test
-test:
+test: deps
 	go test -x -v -cover \
 		-coverpkg $(ROOT_PACKAGE) \
 		-coverprofile package.coverprofile \
@@ -49,10 +49,10 @@ crossbuild: deps
 
 .PHONY: distclean
 distclean:
-	$(RM) vendor/.deps-fetched
+	$(RM) -r vendor/
 
 .PHONY: deps
-deps: vendor/.deps-fetched
+deps: vendor
 
 .PHONY: prereqs
 prereqs:
@@ -62,6 +62,5 @@ prereqs:
 copyright:
 	sed -i "s/^Copyright.*Travis CI/Copyright © $(shell date +%Y) Travis CI/" LICENSE
 
-vendor/.deps-fetched:
-	gvt rebuild
-	touch $@
+vendor:
+	glide install
