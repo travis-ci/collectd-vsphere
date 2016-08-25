@@ -56,7 +56,7 @@ deps: vendor
 
 .PHONY: prereqs
 prereqs:
-	go get -u github.com/FiloSottile/gvt
+	curl https://glide.sh/get | sh
 
 .PHONY: copyright
 copyright:
