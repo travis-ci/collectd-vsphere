@@ -1,0 +1,20 @@
+package: github.com/travis-ci/collectd-vsphere
+homepage: https://github.com/travis-ci/collectd-vsphere
+license: MIT
+import:
+- package: collectd.org
+  version: ~0.2.0
+  subpackages:
+  - api
+  - network
+- package: github.com/urfave/cli
+  version: v2
+- package: github.com/vmware/govmomi
+  version: ~0.8.0
+  subpackages:
+  - event
+  - find
+  - vim25/types
+- package: golang.org/x/net
+  subpackages:
+  - context
