@@ -3,6 +3,7 @@ package collectdvsphere
 import (
 	"net/url"
 
+	"github.com/pkg/errors"
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/event"
 	"github.com/vmware/govmomi/find"
@@ -37,21 +38,17 @@ func NewVSphereEventListener(config VSphereConfig, statsCollector *StatsCollecto
 
 // Start starts the event listener and begins reporting stats to the
 // StatsCollector.
-func (l *VSphereEventListener) Start() {
+func (l *VSphereEventListener) Start() error {
 	l.makeClient()
 
 	clusterRef, err := l.clusterReference()
 	if err != nil {
-		// TODO: This shouldn't panic. Move to New…?
-		panic(err)
+		return err
 	}
 
 	eventManager := event.NewManager(l.client.Client)
 	err = eventManager.Events(context.TODO(), []types.ManagedObjectReference{clusterRef}, 25, true, false, l.handleEvents)
-	if err != nil {
-		// TODO: This shouldn't panic, but handle the error.
-		panic(err)
-	}
+	return errors.Wrap(err, "event handling failed")
 }
 
 func (l *VSphereEventListener) handleEvents(ee []types.BaseEvent) error {
@@ -79,14 +76,14 @@ func (l *VSphereEventListener) handleEvents(ee []types.BaseEvent) error {
 func (l *VSphereEventListener) makeClient() (err error) {
 	l.client, err = govmomi.NewClient(context.TODO(), l.config.URL, l.config.Insecure)
 
-	return err
+	return errors.Wrap(err, "failed to create govmomi client")
 }
 
 func (l *VSphereEventListener) clusterReference() (types.ManagedObjectReference, error) {
 	finder := find.NewFinder(l.client.Client, true)
 	cluster, err := finder.ClusterComputeResource(context.TODO(), l.config.ClusterPath)
 	if err != nil {
-		return types.ManagedObjectReference{}, err
+		return types.ManagedObjectReference{}, errors.Wrap(err, "failed to find cluster")
 	}
 
 	return cluster.Reference(), nil

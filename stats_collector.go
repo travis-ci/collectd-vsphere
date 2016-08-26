@@ -4,6 +4,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"collectd.org/api"
 )
 
@@ -135,37 +137,37 @@ func (c *StatsCollector) writeToCollectd() error {
 	for host, stat := range c.powerOnSuccess {
 		err := c.writer.Write(c.makeValueList(host, "power_on_success", statTime, stat))
 		if err != nil {
-			return err
+			return errors.Wrap(err, "failed to write power_on_success metric")
 		}
 	}
 	for host, stat := range c.powerOnFailure {
 		err := c.writer.Write(c.makeValueList(host, "power_on_failure", statTime, stat))
 		if err != nil {
-			return err
+			return errors.Wrap(err, "failed to write power_on_failure metric")
 		}
 	}
 	for host, stat := range c.powerOffSuccess {
 		err := c.writer.Write(c.makeValueList(host, "power_off_success", statTime, stat))
 		if err != nil {
-			return err
+			return errors.Wrap(err, "failed to write power_off_success metric")
 		}
 	}
 	for host, stat := range c.powerOffFailure {
 		err := c.writer.Write(c.makeValueList(host, "power_off_failure", statTime, stat))
 		if err != nil {
-			return err
+			return errors.Wrap(err, "failed to write power_off_failure metric")
 		}
 	}
 	for baseVM, stat := range c.cloneSuccess {
 		err := c.writer.Write(c.makeValueList(baseVM, "clone_success", statTime, stat))
 		if err != nil {
-			return err
+			return errors.Wrap(err, "failed to write clone_success metric")
 		}
 	}
 	for baseVM, stat := range c.cloneFailure {
 		err := c.writer.Write(c.makeValueList(baseVM, "clone_failure", statTime, stat))
 		if err != nil {
-			return err
+			return errors.Wrap(err, "failed to write clone_failure metric")
 		}
 	}
 
