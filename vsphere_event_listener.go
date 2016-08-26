@@ -7,6 +7,8 @@ import (
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/event"
 	"github.com/vmware/govmomi/find"
+	"github.com/vmware/govmomi/object"
+	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/types"
 	"golang.org/x/net/context"
 )
@@ -24,6 +26,7 @@ type VSphereConfig struct {
 	URL         *url.URL
 	Insecure    bool
 	ClusterPath string
+	BaseVMPath  string
 }
 
 // NewVSphereEventListener creates a VSphereEventListener with a given
@@ -39,7 +42,18 @@ func NewVSphereEventListener(config VSphereConfig, statsCollector *StatsCollecto
 // Start starts the event listener and begins reporting stats to the
 // StatsCollector.
 func (l *VSphereEventListener) Start() error {
-	l.makeClient()
+	err := l.makeClient()
+	if err != nil {
+		return errors.Wrap(err, "couldn't create vSphere client")
+	}
+	err = l.prefillHosts()
+	if err != nil {
+		return errors.Wrap(err, "couldn't prefill hosts")
+	}
+	err = l.prefillBaseVMs()
+	if err != nil {
+		return errors.Wrap(err, "couldn't prefill base VMs")
+	}
 
 	clusterRef, err := l.clusterReference()
 	if err != nil {
@@ -87,4 +101,67 @@ func (l *VSphereEventListener) clusterReference() (types.ManagedObjectReference,
 	}
 
 	return cluster.Reference(), nil
+}
+
+func (l *VSphereEventListener) prefillHosts() error {
+	clusterRef, err := l.clusterReference()
+	if err != nil {
+		return errors.Wrap(err, "failed to get reference to compute cluster")
+	}
+
+	hosts, err := object.NewClusterComputeResource(l.client.Client, clusterRef).Hosts(context.TODO())
+	if err != nil {
+		return errors.Wrap(err, "failed to list hosts in compute cluster")
+	}
+
+	for _, host := range hosts {
+		var mhost mo.HostSystem
+		err := host.Properties(context.TODO(), host.Reference(), []string{"summary"}, &mhost)
+		if err != nil {
+			return errors.Wrap(err, "failed to get summary for host")
+		}
+		name := mhost.Summary.Config.Name
+		if name != "" {
+			l.statsCollector.ensureHostExists(name)
+		}
+	}
+
+	return nil
+}
+
+func (l *VSphereEventListener) prefillBaseVMs() error {
+	if l.config.BaseVMPath == "" {
+		// Skip if no base VM path, for backwards compatibility with v1.0.0
+		return nil
+	}
+
+	finder := find.NewFinder(l.client.Client, true)
+	folder, err := finder.Folder(context.TODO(), l.config.BaseVMPath)
+	if err != nil {
+		return errors.Wrap(err, "failed to find base vm folder")
+	}
+
+	children, err := folder.Children(context.TODO())
+	if err != nil {
+		return errors.Wrap(err, "failed to list children of base vm folder")
+	}
+
+	for _, vmRef := range children {
+		vm, ok := vmRef.(*object.VirtualMachine)
+		if !ok {
+			continue
+		}
+
+		var mvm mo.VirtualMachine
+		err := vm.Properties(context.TODO(), vm.Reference(), []string{"config"}, &mvm)
+		if err != nil {
+			return errors.Wrap(err, "failed to get config for base VM")
+		}
+		name := mvm.Config.Name
+		if name != "" {
+			l.statsCollector.ensureBaseVMExists(name)
+		}
+	}
+
+	return nil
 }
