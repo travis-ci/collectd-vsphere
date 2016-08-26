@@ -33,7 +33,8 @@ clean:
 test:
 	go test -x -v -cover \
 		-coverpkg $(ROOT_PACKAGE) \
-		-coverprofile package.coverprofile \
+		-coverprofile coverage.txt \
+		-covermode=atomic \
 		$(ROOT_PACKAGE)
 
 .PHONY: build
