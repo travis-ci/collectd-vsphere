@@ -1,9 +1,12 @@
 package collectdvsphere
 
 import (
+	"io/ioutil"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/Sirupsen/logrus"
 
 	"collectd.org/api"
 )
@@ -32,7 +35,10 @@ func (w *fakeAPIWriter) Write(vl api.ValueList) error {
 func TestStatsCollector(t *testing.T) {
 	apiWriter := &fakeAPIWriter{metrics: make(map[string]api.Value)}
 
-	collector := NewStatsCollector(apiWriter, time.Millisecond)
+	nullLogger := logrus.New()
+	nullLogger.Out = ioutil.Discard
+
+	collector := NewStatsCollector(apiWriter, time.Millisecond, nullLogger)
 	collector.MarkPowerOnSuccess("on-yes-host")
 	collector.MarkPowerOnSuccess("on-yes-host")
 	collector.MarkPowerOnFailure("on-no-host")
