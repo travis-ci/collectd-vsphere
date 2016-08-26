@@ -93,6 +93,7 @@ func mainAction(c *cli.Context) error {
 		if err != nil {
 			log.Printf("couldn't set raven DSN: %+v", err)
 		}
+		raven.SetRelease(VersionString)
 	}
 
 	statWriter, err := network.Dial(c.String("collectd-hostport"), network.ClientOptions{
