@@ -4,6 +4,7 @@ import (
 	"sync"
 	"time"
 
+	raven "github.com/getsentry/raven-go"
 	"github.com/pkg/errors"
 
 	"collectd.org/api"
@@ -50,7 +51,10 @@ func NewStatsCollector(writer api.Writer, interval time.Duration) *StatsCollecto
 	go func(collector *StatsCollector) {
 		ticker := time.NewTicker(collector.interval)
 		for range ticker.C {
-			collector.writeToCollectd()
+			err := collector.writeToCollectd()
+			if err != nil {
+				raven.CaptureError(err, nil)
+			}
 		}
 	}(collector)
 

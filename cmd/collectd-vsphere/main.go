@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"collectd.org/network"
+	raven "github.com/getsentry/raven-go"
 	collectdvsphere "github.com/travis-ci/collectd-vsphere"
 	"github.com/urfave/cli"
 )
@@ -75,6 +76,11 @@ func main() {
 				Usage:   "path to the vSphere cluster to monitor events on",
 				EnvVars: []string{"VSPHERE_CLUSTER"},
 			},
+			&cli.StringFlag{
+				Name:    "sentry-dsn",
+				Usage:   "DSN for Sentry integration",
+				EnvVars: []string{"SENTRY_DSN"},
+			},
 		},
 	}
 
@@ -82,12 +88,20 @@ func main() {
 }
 
 func mainAction(c *cli.Context) error {
+	if c.IsSet("sentry-dsn") {
+		err := raven.SetDSN(c.String("sentry-dsn"))
+		if err != nil {
+			log.Printf("couldn't set raven DSN: %+v", err)
+		}
+	}
+
 	statWriter, err := network.Dial(c.String("collectd-hostport"), network.ClientOptions{
 		SecurityLevel: network.Encrypt,
 		Username:      c.String("collectd-username"),
 		Password:      c.String("collectd-password"),
 	})
 	if err != nil {
+		raven.CaptureErrorAndWait(err, nil)
 		log.Fatalf("couldn't connect to collectd: %v", err)
 	}
 
@@ -95,6 +109,7 @@ func mainAction(c *cli.Context) error {
 
 	u, err := url.Parse(c.String("vsphere-url"))
 	if err != nil {
+		raven.CaptureErrorAndWait(err, nil)
 		log.Fatalf("couldn't parse VSPHERE_URL: %v", err)
 	}
 	eventListener := collectdvsphere.NewVSphereEventListener(collectdvsphere.VSphereConfig{
@@ -103,7 +118,11 @@ func mainAction(c *cli.Context) error {
 		ClusterPath: c.String("vsphere-cluster"),
 	}, statsCollector)
 
-	eventListener.Start()
+	err = eventListener.Start()
+	if err != nil {
+		raven.CaptureErrorAndWait(err, nil)
+		return err
+	}
 
 	return nil
 }
