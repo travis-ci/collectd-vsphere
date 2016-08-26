@@ -127,6 +127,7 @@ func mainAction(c *cli.Context) error {
 		URL:         u,
 		Insecure:    c.Bool("vsphere-insecure"),
 		ClusterPath: c.String("vsphere-cluster"),
+		BaseVMPath:  c.String("vsphere-base-vm-folder"),
 	}, statsCollector)
 
 	panicErr, _ := raven.CapturePanic(func() {
