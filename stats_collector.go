@@ -4,6 +4,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Sirupsen/logrus"
 	raven "github.com/getsentry/raven-go"
 	"github.com/pkg/errors"
 
@@ -14,6 +15,7 @@ import (
 type StatsCollector struct {
 	writer   api.Writer
 	interval time.Duration
+	logger   logrus.FieldLogger
 
 	mutex sync.Mutex
 
@@ -36,7 +38,7 @@ type StatsCollector struct {
 
 // NewStatsCollector returns a new StatsCollector with no stats, which writes
 // its stats to the given api.Writer every interval.
-func NewStatsCollector(writer api.Writer, interval time.Duration) *StatsCollector {
+func NewStatsCollector(writer api.Writer, interval time.Duration, logger logrus.FieldLogger) *StatsCollector {
 	collector := &StatsCollector{
 		writer:          writer,
 		interval:        interval,
@@ -53,6 +55,7 @@ func NewStatsCollector(writer api.Writer, interval time.Duration) *StatsCollecto
 		for range ticker.C {
 			err := collector.writeToCollectd()
 			if err != nil {
+				collector.logger.WithField("err", err).Info("failed writing to collectd")
 				raven.CaptureError(err, nil)
 			}
 		}
@@ -138,42 +141,52 @@ func (c *StatsCollector) writeToCollectd() error {
 	statTime := time.Now()
 	c.lastWrite = statTime
 
+	events := 0
+
 	for host, stat := range c.powerOnSuccess {
+		events++
 		err := c.writer.Write(c.makeValueList(host, "power_on_success", statTime, stat))
 		if err != nil {
 			return errors.Wrap(err, "failed to write power_on_success metric")
 		}
 	}
 	for host, stat := range c.powerOnFailure {
+		events++
 		err := c.writer.Write(c.makeValueList(host, "power_on_failure", statTime, stat))
 		if err != nil {
 			return errors.Wrap(err, "failed to write power_on_failure metric")
 		}
 	}
 	for host, stat := range c.powerOffSuccess {
+		events++
 		err := c.writer.Write(c.makeValueList(host, "power_off_success", statTime, stat))
 		if err != nil {
 			return errors.Wrap(err, "failed to write power_off_success metric")
 		}
 	}
 	for host, stat := range c.powerOffFailure {
+		events++
 		err := c.writer.Write(c.makeValueList(host, "power_off_failure", statTime, stat))
 		if err != nil {
 			return errors.Wrap(err, "failed to write power_off_failure metric")
 		}
 	}
 	for baseVM, stat := range c.cloneSuccess {
+		events++
 		err := c.writer.Write(c.makeValueList(baseVM, "clone_success", statTime, stat))
 		if err != nil {
 			return errors.Wrap(err, "failed to write clone_success metric")
 		}
 	}
 	for baseVM, stat := range c.cloneFailure {
+		events++
 		err := c.writer.Write(c.makeValueList(baseVM, "clone_failure", statTime, stat))
 		if err != nil {
 			return errors.Wrap(err, "failed to write clone_failure metric")
 		}
 	}
+
+	c.logger.WithField("event_count", events).Info("sent metrics to collectd")
 
 	return nil
 }
