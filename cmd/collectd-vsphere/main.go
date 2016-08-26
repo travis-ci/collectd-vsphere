@@ -2,13 +2,13 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/url"
 	"os"
 	"path/filepath"
 	"time"
 
 	"collectd.org/network"
+	"github.com/Sirupsen/logrus"
 	raven "github.com/getsentry/raven-go"
 	collectdvsphere "github.com/travis-ci/collectd-vsphere"
 	"github.com/urfave/cli"
@@ -93,10 +93,15 @@ func main() {
 }
 
 func mainAction(c *cli.Context) error {
+	logrus.SetFormatter(&logrus.TextFormatter{DisableColors: true})
+	logger := logrus.WithField("pid", os.Getpid())
+	logger.Info("collectd-vsphere starting")
+	defer logger.Info("collectd-vsphere stopping")
+
 	if c.IsSet("sentry-dsn") {
 		err := raven.SetDSN(c.String("sentry-dsn"))
 		if err != nil {
-			log.Printf("couldn't set raven DSN: %+v", err)
+			logger.WithField("err", err).Error("couldn't set raven dsn")
 		}
 		raven.SetRelease(VersionString)
 	}
@@ -108,15 +113,15 @@ func mainAction(c *cli.Context) error {
 	})
 	if err != nil {
 		raven.CaptureErrorAndWait(err, nil)
-		log.Fatalf("couldn't connect to collectd: %v", err)
+		logger.WithField("err", err).Fatal("couldn't connect to collectd")
 	}
 
-	statsCollector := collectdvsphere.NewStatsCollector(statWriter, time.Minute)
+	statsCollector := collectdvsphere.NewStatsCollector(statWriter, time.Minute, logger)
 
 	u, err := url.Parse(c.String("vsphere-url"))
 	if err != nil {
 		raven.CaptureErrorAndWait(err, nil)
-		log.Fatalf("couldn't parse VSPHERE_URL: %v", err)
+		logger.WithField("err", err).Fatal("couldn't parse vsphere url")
 	}
 	eventListener := collectdvsphere.NewVSphereEventListener(collectdvsphere.VSphereConfig{
 		URL:         u,
@@ -127,7 +132,7 @@ func mainAction(c *cli.Context) error {
 	err = eventListener.Start()
 	if err != nil {
 		raven.CaptureErrorAndWait(err, nil)
-		return err
+		logger.WithField("err", err).Fatal("event listener errored")
 	}
 
 	return nil
