@@ -5,6 +5,7 @@ install:
 - make prereqs
 - make deps
 script:
+- make test
 - make copyright
 - git diff --exit-code
 - git diff --cached --exit-code
