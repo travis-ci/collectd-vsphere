@@ -42,6 +42,7 @@ func NewStatsCollector(writer api.Writer, interval time.Duration, logger logrus.
 	collector := &StatsCollector{
 		writer:          writer,
 		interval:        interval,
+		logger:          logger,
 		powerOnSuccess:  make(map[string]int64),
 		powerOnFailure:  make(map[string]int64),
 		powerOffSuccess: make(map[string]int64),
