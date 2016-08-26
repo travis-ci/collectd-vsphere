@@ -77,6 +77,11 @@ func main() {
 				EnvVars: []string{"VSPHERE_CLUSTER"},
 			},
 			&cli.StringFlag{
+				Name:    "vsphere-base-vm-folder",
+				Usage:   "path to the vSphere folder containing base VMs",
+				EnvVars: []string{"VSPHERE_BASE_VM_FOLDER"},
+			},
+			&cli.StringFlag{
 				Name:    "sentry-dsn",
 				Usage:   "DSN for Sentry integration",
 				EnvVars: []string{"SENTRY_DSN"},
