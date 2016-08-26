@@ -129,10 +129,15 @@ func mainAction(c *cli.Context) error {
 		ClusterPath: c.String("vsphere-cluster"),
 	}, statsCollector)
 
-	err = eventListener.Start()
-	if err != nil {
-		raven.CaptureErrorAndWait(err, nil)
-		logger.WithField("err", err).Fatal("event listener errored")
+	panicErr, _ := raven.CapturePanic(func() {
+		err := eventListener.Start()
+		if err != nil {
+			raven.CaptureErrorAndWait(err, nil)
+			logger.WithField("err", err).Fatal("event listener errored")
+		}
+	}, nil)
+	if panicErr != nil {
+		logger.WithField("err", panicErr).Fatal("eventListener paniced, exiting")
 	}
 
 	return nil
