@@ -42,9 +42,18 @@ func NewVSphereEventListener(config VSphereConfig, statsCollector *StatsCollecto
 // Start starts the event listener and begins reporting stats to the
 // StatsCollector.
 func (l *VSphereEventListener) Start() error {
-	l.makeClient()
-	l.prefillHosts()
-	l.prefillBaseVMs()
+	err := l.makeClient()
+	if err != nil {
+		return errors.Wrap(err, "couldn't create vSphere client")
+	}
+	err = l.prefillHosts()
+	if err != nil {
+		return errors.Wrap(err, "couldn't prefill hosts")
+	}
+	err = l.prefillBaseVMs()
+	if err != nil {
+		return errors.Wrap(err, "couldn't prefill base VMs")
+	}
 
 	clusterRef, err := l.clusterReference()
 	if err != nil {
