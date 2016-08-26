@@ -2,3 +2,4 @@
 vendor/**
 !vendor/manifest
 *.coverprofile
+coverage.txt
