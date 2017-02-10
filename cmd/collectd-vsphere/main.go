@@ -76,6 +76,11 @@ func main() {
 				Usage:   "path to the vSphere cluster to monitor events on",
 				EnvVars: []string{"COLLECTD_VSPHERE_VSPHERE_CLUSTER", "VSPHERE_CLUSTER"},
 			},
+			&cli.StringSliceFlag{
+				Name:    "vsphere-clusters",
+				Usage:   "paths to the vSphere clusters to monitor events on",
+				EnvVars: []string{"COLLECTD_VSPHERE_VSPHERE_CLUSTERS", "VSPHERE_CLUSTERS"},
+			},
 			&cli.StringFlag{
 				Name:    "vsphere-base-vm-folder",
 				Usage:   "path to the vSphere folder containing base VMs",
@@ -118,16 +123,25 @@ func mainAction(c *cli.Context) error {
 
 	statsCollector := collectdvsphere.NewStatsCollector(statWriter, time.Minute, logger)
 
+	var clusterPaths []string
+	if c.IsSet("vsphere-cluster") && c.IsSet("vsphere-clusters") {
+		logger.Fatal("only one of vsphere-cluster and vsphere-clusters should be set")
+	} else if c.IsSet("vsphere-cluster") {
+		clusterPaths = []string{c.String("vsphere-cluster")}
+	} else if c.IsSet("vsphere-clusters") {
+		clusterPaths = c.StringSlice("vsphere-clusters")
+	}
+
 	u, err := url.Parse(c.String("vsphere-url"))
 	if err != nil {
 		raven.CaptureErrorAndWait(err, nil)
 		logger.WithField("err", err).Fatal("couldn't parse vsphere url")
 	}
 	eventListener := collectdvsphere.NewVSphereEventListener(collectdvsphere.VSphereConfig{
-		URL:         u,
-		Insecure:    c.Bool("vsphere-insecure"),
-		ClusterPath: c.String("vsphere-cluster"),
-		BaseVMPath:  c.String("vsphere-base-vm-folder"),
+		URL:          u,
+		Insecure:     c.Bool("vsphere-insecure"),
+		ClusterPaths: clusterPaths,
+		BaseVMPath:   c.String("vsphere-base-vm-folder"),
 	}, statsCollector)
 
 	panicErr, _ := raven.CapturePanicAndWait(func() {
