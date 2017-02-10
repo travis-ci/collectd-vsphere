@@ -26,7 +26,7 @@ type VSphereConfig struct {
 	URL          *url.URL
 	Insecure     bool
 	ClusterPaths []string
-	BaseVMPath   string
+	BaseVMPaths  []string
 }
 
 // NewVSphereEventListener creates a VSphereEventListener with a given
@@ -137,36 +137,38 @@ func (l *VSphereEventListener) prefillHosts() error {
 }
 
 func (l *VSphereEventListener) prefillBaseVMs() error {
-	if l.config.BaseVMPath == "" {
+	if len(l.config.BaseVMPaths) == 0 {
 		// Skip if no base VM path, for backwards compatibility with v1.0.0
 		return nil
 	}
 
 	finder := find.NewFinder(l.client.Client, true)
-	folder, err := finder.Folder(context.TODO(), l.config.BaseVMPath)
-	if err != nil {
-		return errors.Wrap(err, "failed to find base vm folder")
-	}
-
-	children, err := folder.Children(context.TODO())
-	if err != nil {
-		return errors.Wrap(err, "failed to list children of base vm folder")
-	}
-
-	for _, vmRef := range children {
-		vm, ok := vmRef.(*object.VirtualMachine)
-		if !ok {
-			continue
-		}
-
-		var mvm mo.VirtualMachine
-		err := vm.Properties(context.TODO(), vm.Reference(), []string{"config"}, &mvm)
+	for _, baseVMPath := range l.config.BaseVMPaths {
+		folder, err := finder.Folder(context.TODO(), baseVMPath)
 		if err != nil {
-			return errors.Wrap(err, "failed to get config for base VM")
+			return errors.Wrap(err, "failed to find base vm folder")
 		}
-		name := mvm.Config.Name
-		if name != "" {
-			l.statsCollector.ensureBaseVMExists(name)
+
+		children, err := folder.Children(context.TODO())
+		if err != nil {
+			return errors.Wrap(err, "failed to list children of base vm folder")
+		}
+
+		for _, vmRef := range children {
+			vm, ok := vmRef.(*object.VirtualMachine)
+			if !ok {
+				continue
+			}
+
+			var mvm mo.VirtualMachine
+			err := vm.Properties(context.TODO(), vm.Reference(), []string{"config"}, &mvm)
+			if err != nil {
+				return errors.Wrap(err, "failed to get config for base VM")
+			}
+			name := mvm.Config.Name
+			if name != "" {
+				l.statsCollector.ensureBaseVMExists(name)
+			}
 		}
 	}
 

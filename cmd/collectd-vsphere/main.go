@@ -86,6 +86,11 @@ func main() {
 				Usage:   "path to the vSphere folder containing base VMs",
 				EnvVars: []string{"COLLECTD_VSPHERE_VSPHERE_BASE_VM_FOLDER", "VSPHERE_BASE_VM_FOLDER"},
 			},
+			&cli.StringSliceFlag{
+				Name:    "vsphere-base-vm-folders",
+				Usage:   "paths to the vSphere folders containing base VMs",
+				EnvVars: []string{"COLLECTD_VSPHERE_VSPHERE_BASE_VM_FOLDERS", "VSPHERE_BASE_VM_FOLDERS"},
+			},
 			&cli.StringFlag{
 				Name:    "sentry-dsn",
 				Usage:   "DSN for Sentry integration",
@@ -132,6 +137,15 @@ func mainAction(c *cli.Context) error {
 		clusterPaths = c.StringSlice("vsphere-clusters")
 	}
 
+	var baseVMPaths []string
+	if c.IsSet("vsphere-base-vm-folder") && c.IsSet("vsphere-base-vm-folders") {
+		logger.Fatal("only one of vsphere-base-vm-folder and vsphere-base-vm-folders should be set")
+	} else if c.IsSet("vsphere-base-vm-folder") {
+		baseVMPaths = []string{c.String("vsphere-base-vm-folder")}
+	} else if c.IsSet("vsphere-base-vm-folders") {
+		baseVMPaths = c.StringSlice("vsphere-base-vm-folders")
+	}
+
 	u, err := url.Parse(c.String("vsphere-url"))
 	if err != nil {
 		raven.CaptureErrorAndWait(err, nil)
@@ -141,7 +155,7 @@ func mainAction(c *cli.Context) error {
 		URL:          u,
 		Insecure:     c.Bool("vsphere-insecure"),
 		ClusterPaths: clusterPaths,
-		BaseVMPath:   c.String("vsphere-base-vm-folder"),
+		BaseVMPaths:  baseVMPaths,
 	}, statsCollector)
 
 	panicErr, _ := raven.CapturePanicAndWait(func() {
