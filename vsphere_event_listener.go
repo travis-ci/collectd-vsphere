@@ -3,6 +3,7 @@ package collectdvsphere
 import (
 	"net/url"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/pkg/errors"
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/event"
@@ -19,6 +20,7 @@ type VSphereEventListener struct {
 	config         VSphereConfig
 	statsCollector *StatsCollector
 	client         *govmomi.Client
+	logger         logrus.FieldLogger
 }
 
 // A VSphereConfig provides configuration for a VSphereEventListener
@@ -32,10 +34,11 @@ type VSphereConfig struct {
 // NewVSphereEventListener creates a VSphereEventListener with a given
 // configuration. Call Start on the event listener to start listening and
 // reporting to the given stats collector.
-func NewVSphereEventListener(config VSphereConfig, statsCollector *StatsCollector) *VSphereEventListener {
+func NewVSphereEventListener(config VSphereConfig, statsCollector *StatsCollector, logger logrus.FieldLogger) *VSphereEventListener {
 	return &VSphereEventListener{
 		config:         config,
 		statsCollector: statsCollector,
+		logger:         logger,
 	}
 }
 
@@ -50,10 +53,13 @@ func (l *VSphereEventListener) Start() error {
 	if err != nil {
 		return errors.Wrap(err, "couldn't prefill hosts")
 	}
+	l.logger.Info("prefilled hosts")
+
 	err = l.prefillBaseVMs()
 	if err != nil {
 		return errors.Wrap(err, "couldn't prefill base VMs")
 	}
+	l.logger.Info("prefilled base VMs")
 
 	clusterRefs, err := l.clusterReferences()
 	if err != nil {
@@ -61,7 +67,10 @@ func (l *VSphereEventListener) Start() error {
 	}
 
 	eventManager := event.NewManager(l.client.Client)
+
+	l.logger.WithField("cluster-count", len(clusterRefs)).Info("starting event listener")
 	err = eventManager.Events(context.TODO(), clusterRefs, 25, true, false, l.handleEvents)
+
 	return errors.Wrap(err, "event handling failed")
 }
 
@@ -127,6 +136,7 @@ func (l *VSphereEventListener) prefillHosts() error {
 				return errors.Wrap(err, "failed to get summary for host")
 			}
 			name := mhost.Summary.Config.Name
+			l.logger.WithField("name", name).Info("prefilling host")
 			if name != "" {
 				l.statsCollector.ensureHostExists(name)
 			}
@@ -166,6 +176,7 @@ func (l *VSphereEventListener) prefillBaseVMs() error {
 				return errors.Wrap(err, "failed to get config for base VM")
 			}
 			name := mvm.Config.Name
+			l.logger.WithField("name", name).Info("prefilling base VM")
 			if name != "" {
 				l.statsCollector.ensureBaseVMExists(name)
 			}
