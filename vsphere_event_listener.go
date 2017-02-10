@@ -23,10 +23,10 @@ type VSphereEventListener struct {
 
 // A VSphereConfig provides configuration for a VSphereEventListener
 type VSphereConfig struct {
-	URL         *url.URL
-	Insecure    bool
-	ClusterPath string
-	BaseVMPath  string
+	URL          *url.URL
+	Insecure     bool
+	ClusterPaths []string
+	BaseVMPath   string
 }
 
 // NewVSphereEventListener creates a VSphereEventListener with a given
@@ -55,13 +55,13 @@ func (l *VSphereEventListener) Start() error {
 		return errors.Wrap(err, "couldn't prefill base VMs")
 	}
 
-	clusterRef, err := l.clusterReference()
+	clusterRefs, err := l.clusterReferences()
 	if err != nil {
 		return err
 	}
 
 	eventManager := event.NewManager(l.client.Client)
-	err = eventManager.Events(context.TODO(), []types.ManagedObjectReference{clusterRef}, 25, true, false, l.handleEvents)
+	err = eventManager.Events(context.TODO(), clusterRefs, 25, true, false, l.handleEvents)
 	return errors.Wrap(err, "event handling failed")
 }
 
@@ -93,36 +93,43 @@ func (l *VSphereEventListener) makeClient() (err error) {
 	return errors.Wrap(err, "failed to create govmomi client")
 }
 
-func (l *VSphereEventListener) clusterReference() (types.ManagedObjectReference, error) {
+func (l *VSphereEventListener) clusterReferences() ([]types.ManagedObjectReference, error) {
 	finder := find.NewFinder(l.client.Client, true)
-	cluster, err := finder.ClusterComputeResource(context.TODO(), l.config.ClusterPath)
-	if err != nil {
-		return types.ManagedObjectReference{}, errors.Wrap(err, "failed to find cluster")
+
+	clusters := make([]types.ManagedObjectReference, 0, len(l.config.ClusterPaths))
+	for _, path := range l.config.ClusterPaths {
+		cluster, err := finder.ClusterComputeResource(context.TODO(), path)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to find cluster")
+		}
+		clusters = append(clusters, cluster.Reference())
 	}
 
-	return cluster.Reference(), nil
+	return clusters, nil
 }
 
 func (l *VSphereEventListener) prefillHosts() error {
-	clusterRef, err := l.clusterReference()
+	clusterRefs, err := l.clusterReferences()
 	if err != nil {
 		return errors.Wrap(err, "failed to get reference to compute cluster")
 	}
 
-	hosts, err := object.NewClusterComputeResource(l.client.Client, clusterRef).Hosts(context.TODO())
-	if err != nil {
-		return errors.Wrap(err, "failed to list hosts in compute cluster")
-	}
-
-	for _, host := range hosts {
-		var mhost mo.HostSystem
-		err := host.Properties(context.TODO(), host.Reference(), []string{"summary"}, &mhost)
+	for _, clusterRef := range clusterRefs {
+		hosts, err := object.NewClusterComputeResource(l.client.Client, clusterRef).Hosts(context.TODO())
 		if err != nil {
-			return errors.Wrap(err, "failed to get summary for host")
+			return errors.Wrap(err, "failed to list hosts in compute cluster")
 		}
-		name := mhost.Summary.Config.Name
-		if name != "" {
-			l.statsCollector.ensureHostExists(name)
+
+		for _, host := range hosts {
+			var mhost mo.HostSystem
+			err := host.Properties(context.TODO(), host.Reference(), []string{"summary"}, &mhost)
+			if err != nil {
+				return errors.Wrap(err, "failed to get summary for host")
+			}
+			name := mhost.Summary.Config.Name
+			if name != "" {
+				l.statsCollector.ensureHostExists(name)
+			}
 		}
 	}
 
