@@ -49,42 +49,42 @@ func main() {
 			&cli.StringFlag{
 				Name:    "collectd-hostport",
 				Usage:   "the host:port for collectd",
-				EnvVars: []string{"COLLECTD_HOSTPORT"},
+				EnvVars: []string{"COLLECTD_VSPHERE_COLLECTD_HOSTPORT", "COLLECTD_HOSTPORT"},
 			},
 			&cli.StringFlag{
 				Name:    "collectd-username",
 				Usage:   "the username for collectd",
-				EnvVars: []string{"COLLECTD_USERNAME"},
+				EnvVars: []string{"COLLECTD_VSPHERE_COLLECTD_USERNAME", "COLLECTD_USERNAME"},
 			},
 			&cli.StringFlag{
 				Name:    "collectd-password",
 				Usage:   "the password for collectd",
-				EnvVars: []string{"COLLECTD_PASSWORD"},
+				EnvVars: []string{"COLLECTD_VSPHERE_COLLECTD_PASSWORD", "COLLECTD_PASSWORD"},
 			},
 			&cli.StringFlag{
 				Name:    "vsphere-url",
 				Usage:   "the URL for the vSphere API",
-				EnvVars: []string{"VSPHERE_URL"},
+				EnvVars: []string{"COLLECTD_VSPHERE_VSPHERE_URL", "VSPHERE_URL"},
 			},
 			&cli.BoolFlag{
 				Name:    "vsphere-insecure",
 				Usage:   "connect to vSphere without verifying TLS certs",
-				EnvVars: []string{"VSPHERE_INSECURE"},
+				EnvVars: []string{"COLLECTD_VSPHERE_VSPHERE_INSECURE", "VSPHERE_INSECURE"},
 			},
 			&cli.StringFlag{
 				Name:    "vsphere-cluster",
 				Usage:   "path to the vSphere cluster to monitor events on",
-				EnvVars: []string{"VSPHERE_CLUSTER"},
+				EnvVars: []string{"COLLECTD_VSPHERE_VSPHERE_CLUSTER", "VSPHERE_CLUSTER"},
 			},
 			&cli.StringFlag{
 				Name:    "vsphere-base-vm-folder",
 				Usage:   "path to the vSphere folder containing base VMs",
-				EnvVars: []string{"VSPHERE_BASE_VM_FOLDER"},
+				EnvVars: []string{"COLLECTD_VSPHERE_VSPHERE_BASE_VM_FOLDER", "VSPHERE_BASE_VM_FOLDER"},
 			},
 			&cli.StringFlag{
 				Name:    "sentry-dsn",
 				Usage:   "DSN for Sentry integration",
-				EnvVars: []string{"SENTRY_DSN"},
+				EnvVars: []string{"COLLECTD_VSPHERE_SENTRY_DSN", "SENTRY_DSN"},
 			},
 		},
 	}
