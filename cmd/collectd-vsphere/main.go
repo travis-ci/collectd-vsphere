@@ -116,6 +116,7 @@ func mainAction(c *cli.Context) error {
 		raven.SetRelease(VersionString)
 	}
 
+	logger.Info("connecting to collectd")
 	statWriter, err := network.Dial(c.String("collectd-hostport"), network.ClientOptions{
 		SecurityLevel: network.Encrypt,
 		Username:      c.String("collectd-username"),
@@ -156,7 +157,7 @@ func mainAction(c *cli.Context) error {
 		Insecure:     c.Bool("vsphere-insecure"),
 		ClusterPaths: clusterPaths,
 		BaseVMPaths:  baseVMPaths,
-	}, statsCollector)
+	}, statsCollector, logger.WithField("component", "vsphere-event-listener"))
 
 	panicErr, _ := raven.CapturePanicAndWait(func() {
 		err := eventListener.Start()
