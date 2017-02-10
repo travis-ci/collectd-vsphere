@@ -46,6 +46,14 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/certifi/gocertifi",
+			"repository": "https://github.com/certifi/gocertifi",
+			"vcs": "git",
+			"revision": "03be5e6bb9874570ea7fb0961225d193cbc374c5",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/davecgh/go-spew/spew",
 			"repository": "https://github.com/davecgh/go-spew",
 			"vcs": "git",
@@ -58,7 +66,7 @@
 			"importpath": "github.com/getsentry/raven-go",
 			"repository": "https://github.com/getsentry/raven-go",
 			"vcs": "git",
-			"revision": "c9d3cc542ad199f62c0264286be537f9bce6063c",
+			"revision": "3f7439d3e74d88e21d196ba20eb61a5a958bc118",
 			"branch": "master",
 			"notests": true
 		},
