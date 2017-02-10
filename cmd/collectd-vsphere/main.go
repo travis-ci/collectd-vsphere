@@ -130,7 +130,7 @@ func mainAction(c *cli.Context) error {
 		BaseVMPath:  c.String("vsphere-base-vm-folder"),
 	}, statsCollector)
 
-	panicErr, _ := raven.CapturePanic(func() {
+	panicErr, _ := raven.CapturePanicAndWait(func() {
 		err := eventListener.Start()
 		if err != nil {
 			raven.CaptureErrorAndWait(err, nil)
