@@ -63,6 +63,6 @@ prereqs:
 copyright:
 	sed -i "s/^Copyright.*Travis CI/Copyright © $(shell date +%Y) Travis CI/" LICENSE
 
-vendor/.deps-fetched:
+vendor/.deps-fetched: vendor/manifest
 	gvt rebuild
 	touch $@
