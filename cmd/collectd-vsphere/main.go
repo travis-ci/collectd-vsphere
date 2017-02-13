@@ -96,6 +96,11 @@ func main() {
 				Usage:   "DSN for Sentry integration",
 				EnvVars: []string{"COLLECTD_VSPHERE_SENTRY_DSN", "SENTRY_DSN"},
 			},
+			&cli.StringFlag{
+				Name:    "collectd-plugin-instance",
+				Usage:   "Plugin instance value for collectd metrics to be able to distinguish metrics from this instance of collectd-vsphere from other instances",
+				EnvVars: []string{"COLLECTD_VSPHERE_COLLECTD_PLUGIN_INSTANCE", "COLLECTD_PLUGIN_INSTANCE"},
+			},
 		},
 	}
 
@@ -127,7 +132,7 @@ func mainAction(c *cli.Context) error {
 		logger.WithField("err", err).Fatal("couldn't connect to collectd")
 	}
 
-	statsCollector := collectdvsphere.NewStatsCollector(statWriter, time.Minute, logger)
+	statsCollector := collectdvsphere.NewStatsCollector(statWriter, time.Minute, logger, c.String("collectd-plugin-instance"))
 
 	var clusterPaths []string
 	if c.IsSet("vsphere-cluster") && c.IsSet("vsphere-clusters") {
