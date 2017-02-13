@@ -31,7 +31,7 @@ clean:
 
 .PHONY: test
 test:
-	go test $(GOBUILDFLAGS) -v -cover \
+	go test $(GOBUILDFLAGS) -v -race -cover \
 		-coverpkg $(ROOT_PACKAGE) \
 		-coverprofile coverage.txt \
 		-covermode=atomic \
