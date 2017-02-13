@@ -13,9 +13,10 @@ import (
 
 // A StatsCollector stores various stats that are sent to it and allows you to fetch metrics based on them.
 type StatsCollector struct {
-	writer   api.Writer
-	interval time.Duration
-	logger   logrus.FieldLogger
+	writer                 api.Writer
+	interval               time.Duration
+	logger                 logrus.FieldLogger
+	collectdPluginInstance string
 
 	mutex sync.Mutex
 
@@ -38,17 +39,18 @@ type StatsCollector struct {
 
 // NewStatsCollector returns a new StatsCollector with no stats, which writes
 // its stats to the given api.Writer every interval.
-func NewStatsCollector(writer api.Writer, interval time.Duration, logger logrus.FieldLogger) *StatsCollector {
+func NewStatsCollector(writer api.Writer, interval time.Duration, logger logrus.FieldLogger, collectdPluginInstance string) *StatsCollector {
 	collector := &StatsCollector{
-		writer:          writer,
-		interval:        interval,
-		logger:          logger,
-		powerOnSuccess:  make(map[string]int64),
-		powerOnFailure:  make(map[string]int64),
-		powerOffSuccess: make(map[string]int64),
-		powerOffFailure: make(map[string]int64),
-		cloneSuccess:    make(map[string]int64),
-		cloneFailure:    make(map[string]int64),
+		writer:                 writer,
+		interval:               interval,
+		logger:                 logger,
+		collectdPluginInstance: collectdPluginInstance,
+		powerOnSuccess:         make(map[string]int64),
+		powerOnFailure:         make(map[string]int64),
+		powerOffSuccess:        make(map[string]int64),
+		powerOffFailure:        make(map[string]int64),
+		cloneSuccess:           make(map[string]int64),
+		cloneFailure:           make(map[string]int64),
 	}
 
 	go func(collector *StatsCollector) {
@@ -196,6 +198,7 @@ func (c *StatsCollector) makeValueList(host, metric string, statTime time.Time, 
 	var valueList api.ValueList
 	valueList.Identifier.Host = host
 	valueList.Identifier.Plugin = "vsphere"
+	valueList.Identifier.PluginInstance = c.collectdPluginInstance
 	valueList.Identifier.Type = "operations"
 	valueList.Identifier.TypeInstance = metric
 	valueList.Time = statTime

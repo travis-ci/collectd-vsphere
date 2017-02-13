@@ -38,7 +38,7 @@ func TestStatsCollector(t *testing.T) {
 	nullLogger := logrus.New()
 	nullLogger.Out = ioutil.Discard
 
-	collector := NewStatsCollector(apiWriter, time.Millisecond, nullLogger)
+	collector := NewStatsCollector(apiWriter, time.Millisecond, nullLogger, "foo-instance")
 	collector.MarkPowerOnSuccess("on-yes-host")
 	collector.MarkPowerOnSuccess("on-yes-host")
 	collector.MarkPowerOnFailure("on-no-host")
@@ -55,31 +55,31 @@ func TestStatsCollector(t *testing.T) {
 		metric string
 		value  api.Value
 	}{
-		{"on-yes-host/vsphere/operations-power_on_success", api.Derive(2)},
-		{"on-yes-host/vsphere/operations-power_on_failure", api.Derive(0)},
-		{"on-yes-host/vsphere/operations-power_off_success", api.Derive(0)},
-		{"on-yes-host/vsphere/operations-power_off_failure", api.Derive(0)},
+		{"on-yes-host/vsphere-foo-instance/operations-power_on_success", api.Derive(2)},
+		{"on-yes-host/vsphere-foo-instance/operations-power_on_failure", api.Derive(0)},
+		{"on-yes-host/vsphere-foo-instance/operations-power_off_success", api.Derive(0)},
+		{"on-yes-host/vsphere-foo-instance/operations-power_off_failure", api.Derive(0)},
 
-		{"on-no-host/vsphere/operations-power_on_success", api.Derive(0)},
-		{"on-no-host/vsphere/operations-power_on_failure", api.Derive(1)},
-		{"on-no-host/vsphere/operations-power_off_success", api.Derive(0)},
-		{"on-no-host/vsphere/operations-power_off_failure", api.Derive(0)},
+		{"on-no-host/vsphere-foo-instance/operations-power_on_success", api.Derive(0)},
+		{"on-no-host/vsphere-foo-instance/operations-power_on_failure", api.Derive(1)},
+		{"on-no-host/vsphere-foo-instance/operations-power_off_success", api.Derive(0)},
+		{"on-no-host/vsphere-foo-instance/operations-power_off_failure", api.Derive(0)},
 
-		{"off-yes-host/vsphere/operations-power_on_success", api.Derive(0)},
-		{"off-yes-host/vsphere/operations-power_on_failure", api.Derive(0)},
-		{"off-yes-host/vsphere/operations-power_off_success", api.Derive(1)},
-		{"off-yes-host/vsphere/operations-power_off_failure", api.Derive(0)},
+		{"off-yes-host/vsphere-foo-instance/operations-power_on_success", api.Derive(0)},
+		{"off-yes-host/vsphere-foo-instance/operations-power_on_failure", api.Derive(0)},
+		{"off-yes-host/vsphere-foo-instance/operations-power_off_success", api.Derive(1)},
+		{"off-yes-host/vsphere-foo-instance/operations-power_off_failure", api.Derive(0)},
 
-		{"off-no-host/vsphere/operations-power_on_success", api.Derive(0)},
-		{"off-no-host/vsphere/operations-power_on_failure", api.Derive(0)},
-		{"off-no-host/vsphere/operations-power_off_success", api.Derive(0)},
-		{"off-no-host/vsphere/operations-power_off_failure", api.Derive(1)},
+		{"off-no-host/vsphere-foo-instance/operations-power_on_success", api.Derive(0)},
+		{"off-no-host/vsphere-foo-instance/operations-power_on_failure", api.Derive(0)},
+		{"off-no-host/vsphere-foo-instance/operations-power_off_success", api.Derive(0)},
+		{"off-no-host/vsphere-foo-instance/operations-power_off_failure", api.Derive(1)},
 
-		{"yes-image/vsphere/operations-clone_success", api.Derive(1)},
-		{"yes-image/vsphere/operations-clone_failure", api.Derive(0)},
+		{"yes-image/vsphere-foo-instance/operations-clone_success", api.Derive(1)},
+		{"yes-image/vsphere-foo-instance/operations-clone_failure", api.Derive(0)},
 
-		{"no-image/vsphere/operations-clone_success", api.Derive(0)},
-		{"no-image/vsphere/operations-clone_failure", api.Derive(1)},
+		{"no-image/vsphere-foo-instance/operations-clone_success", api.Derive(0)},
+		{"no-image/vsphere-foo-instance/operations-clone_failure", api.Derive(1)},
 	}
 
 	for _, expected := range expectedMetrics {
