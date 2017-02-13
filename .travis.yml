@@ -17,6 +17,7 @@ after_success:
 env:
   global:
   - 'TRAVIS_COMMIT_SHORT="${TRAVIS_COMMIT:0:7}"'
+  - 'GOBUILDFLAGS="-x"'
 
 addons:
   artifacts:

@@ -31,7 +31,7 @@ clean:
 
 .PHONY: test
 test:
-	go test -x -v -cover \
+	go test $(GOBUILDFLAGS) -v -cover \
 		-coverpkg $(ROOT_PACKAGE) \
 		-coverprofile coverage.txt \
 		-covermode=atomic \
@@ -39,13 +39,13 @@ test:
 
 .PHONY: build
 build: deps
-	go install -x -ldflags "$(GOBUILD_LDFLAGS)" $(MAIN_PACKAGE)
+	go install $(GOBUILDFLAGS) -ldflags "$(GOBUILD_LDFLAGS)" $(MAIN_PACKAGE)
 
 .PHONY: crossbuild
 crossbuild: deps
-	GOARCH=amd64 GOOS=darwin go build -o build/darwin/amd64/collectd-vsphere \
+	GOARCH=amd64 GOOS=darwin go build $(GOBUILDFLAGS) -o build/darwin/amd64/collectd-vsphere \
 		-ldflags "$(GOBUILD_LDFLAGS)" $(MAIN_PACKAGE)
-	GOARCH=amd64 GOOS=linux go build -o build/linux/amd64/collectd-vsphere \
+	GOARCH=amd64 GOOS=linux go build $(GOBUILDFLAGS) -o build/linux/amd64/collectd-vsphere \
 		-ldflags "$(GOBUILD_LDFLAGS)" $(MAIN_PACKAGE)
 
 .PHONY: distclean
