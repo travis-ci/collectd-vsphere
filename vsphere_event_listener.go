@@ -109,7 +109,7 @@ func (l *VSphereEventListener) clusterReferences() ([]types.ManagedObjectReferen
 	for _, path := range l.config.ClusterPaths {
 		cluster, err := finder.ClusterComputeResource(context.TODO(), path)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to find cluster")
+			return nil, errors.Wrapf(err, "failed to find cluster with path %s", path)
 		}
 		clusters = append(clusters, cluster.Reference())
 	}
@@ -120,20 +120,20 @@ func (l *VSphereEventListener) clusterReferences() ([]types.ManagedObjectReferen
 func (l *VSphereEventListener) prefillHosts() error {
 	clusterRefs, err := l.clusterReferences()
 	if err != nil {
-		return errors.Wrap(err, "failed to get reference to compute cluster")
+		return errors.Wrap(err, "failed to get references to compute clusters")
 	}
 
 	for _, clusterRef := range clusterRefs {
 		hosts, err := object.NewClusterComputeResource(l.client.Client, clusterRef).Hosts(context.TODO())
 		if err != nil {
-			return errors.Wrap(err, "failed to list hosts in compute cluster")
+			return errors.Wrapf(err, "failed to list hosts in compute cluster with ID %s", clusterRef)
 		}
 
 		for _, host := range hosts {
 			var mhost mo.HostSystem
 			err := host.Properties(context.TODO(), host.Reference(), []string{"summary"}, &mhost)
 			if err != nil {
-				return errors.Wrap(err, "failed to get summary for host")
+				return errors.Wrapf(err, "failed to get summary for host with ID %s", host.Reference())
 			}
 			name := mhost.Summary.Config.Name
 			l.logger.WithField("name", name).Info("prefilling host")
@@ -156,12 +156,12 @@ func (l *VSphereEventListener) prefillBaseVMs() error {
 	for _, baseVMPath := range l.config.BaseVMPaths {
 		folder, err := finder.Folder(context.TODO(), baseVMPath)
 		if err != nil {
-			return errors.Wrap(err, "failed to find base vm folder")
+			return errors.Wrapf(err, "failed to find base vm folder with path %s", baseVMPath)
 		}
 
 		children, err := folder.Children(context.TODO())
 		if err != nil {
-			return errors.Wrap(err, "failed to list children of base vm folder")
+			return errors.Wrapf(err, "failed to list children of base vm folder with path %s", baseVMPath)
 		}
 
 		for _, vmRef := range children {
@@ -173,7 +173,7 @@ func (l *VSphereEventListener) prefillBaseVMs() error {
 			var mvm mo.VirtualMachine
 			err := vm.Properties(context.TODO(), vm.Reference(), []string{"config"}, &mvm)
 			if err != nil {
-				return errors.Wrap(err, "failed to get config for base VM")
+				return errors.Wrapf(err, "failed to get config for base VM with ID %s", vmRef.Reference())
 			}
 			name := mvm.Config.Name
 			l.logger.WithField("name", name).Info("prefilling base VM")
