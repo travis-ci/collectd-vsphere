@@ -113,7 +113,7 @@ func mainAction(c *cli.Context) error {
 	logger.Info("collectd-vsphere starting")
 	defer logger.Info("collectd-vsphere stopping")
 
-	if c.IsSet("sentry-dsn") {
+	if c.String("sentry-dsn") != "" {
 		err := raven.SetDSN(c.String("sentry-dsn"))
 		if err != nil {
 			logger.WithField("err", err).Error("couldn't set raven dsn")
@@ -122,6 +122,10 @@ func mainAction(c *cli.Context) error {
 	}
 
 	logger.Info("connecting to collectd")
+
+	if c.String("collectd-hostport") == "" || c.String("collectd-username") == "" || c.String("collectd-password") == "" {
+		logger.Fatal("collectd-hostport, collectd-username and collectd-password flags must be set")
+	}
 	statWriter, err := network.Dial(c.String("collectd-hostport"), network.ClientOptions{
 		SecurityLevel: network.Encrypt,
 		Username:      c.String("collectd-username"),
@@ -132,31 +136,43 @@ func mainAction(c *cli.Context) error {
 		logger.WithField("err", err).Fatal("couldn't connect to collectd")
 	}
 
+	if c.String("collectd-plugin-instance") == "" {
+		logger.Fatal("collectd-plugin-instance must be set")
+	}
 	statsCollector := collectdvsphere.NewStatsCollector(statWriter, time.Minute, logger, c.String("collectd-plugin-instance"))
 
 	var clusterPaths []string
-	if c.IsSet("vsphere-cluster") && c.IsSet("vsphere-clusters") {
+	if c.String("vsphere-cluster") != "" && len(c.StringSlice("vsphere-clusters")) > 0 {
 		logger.Fatal("only one of vsphere-cluster and vsphere-clusters should be set")
-	} else if c.IsSet("vsphere-cluster") {
+	} else if c.String("vsphere-cluster") != "" {
 		clusterPaths = []string{c.String("vsphere-cluster")}
-	} else if c.IsSet("vsphere-clusters") {
+	} else if len(c.StringSlice("vsphere-clusters")) != 0 {
 		clusterPaths = c.StringSlice("vsphere-clusters")
+	} else {
+		logger.Fatal("vsphere-cluster or vsphere-clusters must be set")
 	}
 
 	var baseVMPaths []string
-	if c.IsSet("vsphere-base-vm-folder") && c.IsSet("vsphere-base-vm-folders") {
+	if c.String("vsphere-base-vm-folder") != "" && len(c.StringSlice("vsphere-base-vm-folders")) > 0 {
 		logger.Fatal("only one of vsphere-base-vm-folder and vsphere-base-vm-folders should be set")
-	} else if c.IsSet("vsphere-base-vm-folder") {
+	} else if c.String("vsphere-base-vm-folder") != "" {
 		baseVMPaths = []string{c.String("vsphere-base-vm-folder")}
-	} else if c.IsSet("vsphere-base-vm-folders") {
+	} else if len(c.StringSlice("vsphere-base-vm-folders")) > 0 {
 		baseVMPaths = c.StringSlice("vsphere-base-vm-folders")
+	} else {
+		// This is just a warning to remain compatible with v1.0.0
+		logger.Warn("vsphere-base-vm-folder and vsphere-base-vm-folders aren't set")
 	}
 
+	if c.String("vsphere-url") == "" {
+		logger.Fatal("vsphere-url must be set")
+	}
 	u, err := url.Parse(c.String("vsphere-url"))
 	if err != nil {
 		raven.CaptureErrorAndWait(err, nil)
 		logger.WithField("err", err).Fatal("couldn't parse vsphere url")
 	}
+
 	eventListener := collectdvsphere.NewVSphereEventListener(collectdvsphere.VSphereConfig{
 		URL:          u,
 		Insecure:     c.Bool("vsphere-insecure"),
