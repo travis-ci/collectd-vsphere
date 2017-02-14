@@ -78,7 +78,7 @@ func main() {
 			},
 			&cli.StringSliceFlag{
 				Name:    "vsphere-clusters",
-				Usage:   "paths to the vSphere clusters to monitor events on",
+				Usage:   "comma-separated paths to the vSphere clusters to monitor events on",
 				EnvVars: []string{"COLLECTD_VSPHERE_VSPHERE_CLUSTERS", "VSPHERE_CLUSTERS"},
 			},
 			&cli.StringFlag{
@@ -88,7 +88,7 @@ func main() {
 			},
 			&cli.StringSliceFlag{
 				Name:    "vsphere-base-vm-folders",
-				Usage:   "paths to the vSphere folders containing base VMs",
+				Usage:   "comma-separated paths to the vSphere folders containing base VMs",
 				EnvVars: []string{"COLLECTD_VSPHERE_VSPHERE_BASE_VM_FOLDERS", "VSPHERE_BASE_VM_FOLDERS"},
 			},
 			&cli.StringFlag{
