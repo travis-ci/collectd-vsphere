@@ -1,4 +1,4 @@
-# collectd-vsphere
+# collectd-vsphere [![Build Status](https://travis-ci.org/travis-ci/collectd-vsphere.svg?branch=master)](https://travis-ci.org/travis-ci/collectd-vsphere)
 
 Collects metrics from vSphere and sends them to collectd.
 
