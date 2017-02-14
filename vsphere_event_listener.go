@@ -1,6 +1,7 @@
 package collectdvsphere
 
 import (
+	"context"
 	"net/url"
 
 	"github.com/Sirupsen/logrus"
@@ -11,7 +12,6 @@ import (
 	"github.com/vmware/govmomi/object"
 	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/types"
-	"golang.org/x/net/context"
 )
 
 // VSphereEventListener connects to a vSphere API and listens for certain
@@ -44,24 +44,24 @@ func NewVSphereEventListener(config VSphereConfig, statsCollector *StatsCollecto
 
 // Start starts the event listener and begins reporting stats to the
 // StatsCollector.
-func (l *VSphereEventListener) Start() error {
-	err := l.makeClient()
+func (l *VSphereEventListener) Start(ctx context.Context) error {
+	err := l.makeClient(ctx)
 	if err != nil {
 		return errors.Wrap(err, "couldn't create vSphere client")
 	}
-	err = l.prefillHosts()
+	err = l.prefillHosts(ctx)
 	if err != nil {
 		return errors.Wrap(err, "couldn't prefill hosts")
 	}
 	l.logger.Info("prefilled hosts")
 
-	err = l.prefillBaseVMs()
+	err = l.prefillBaseVMs(ctx)
 	if err != nil {
 		return errors.Wrap(err, "couldn't prefill base VMs")
 	}
 	l.logger.Info("prefilled base VMs")
 
-	clusterRefs, err := l.clusterReferences()
+	clusterRefs, err := l.clusterReferences(ctx)
 	if err != nil {
 		return err
 	}
@@ -69,7 +69,7 @@ func (l *VSphereEventListener) Start() error {
 	eventManager := event.NewManager(l.client.Client)
 
 	l.logger.WithField("cluster-count", len(clusterRefs)).Info("starting event listener")
-	err = eventManager.Events(context.TODO(), clusterRefs, 25, true, false, l.handleEvents)
+	err = eventManager.Events(ctx, clusterRefs, 25, true, false, l.handleEvents)
 
 	return errors.Wrap(err, "event handling failed")
 }
@@ -96,18 +96,18 @@ func (l *VSphereEventListener) handleEvents(ee []types.BaseEvent) error {
 	return nil
 }
 
-func (l *VSphereEventListener) makeClient() (err error) {
-	l.client, err = govmomi.NewClient(context.TODO(), l.config.URL, l.config.Insecure)
+func (l *VSphereEventListener) makeClient(ctx context.Context) (err error) {
+	l.client, err = govmomi.NewClient(ctx, l.config.URL, l.config.Insecure)
 
 	return errors.Wrap(err, "failed to create govmomi client")
 }
 
-func (l *VSphereEventListener) clusterReferences() ([]types.ManagedObjectReference, error) {
+func (l *VSphereEventListener) clusterReferences(ctx context.Context) ([]types.ManagedObjectReference, error) {
 	finder := find.NewFinder(l.client.Client, true)
 
 	clusters := make([]types.ManagedObjectReference, 0, len(l.config.ClusterPaths))
 	for _, path := range l.config.ClusterPaths {
-		cluster, err := finder.ClusterComputeResource(context.TODO(), path)
+		cluster, err := finder.ClusterComputeResource(ctx, path)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to find cluster with path %s", path)
 		}
@@ -117,21 +117,21 @@ func (l *VSphereEventListener) clusterReferences() ([]types.ManagedObjectReferen
 	return clusters, nil
 }
 
-func (l *VSphereEventListener) prefillHosts() error {
-	clusterRefs, err := l.clusterReferences()
+func (l *VSphereEventListener) prefillHosts(ctx context.Context) error {
+	clusterRefs, err := l.clusterReferences(ctx)
 	if err != nil {
 		return errors.Wrap(err, "failed to get references to compute clusters")
 	}
 
 	for _, clusterRef := range clusterRefs {
-		hosts, err := object.NewClusterComputeResource(l.client.Client, clusterRef).Hosts(context.TODO())
+		hosts, err := object.NewClusterComputeResource(l.client.Client, clusterRef).Hosts(ctx)
 		if err != nil {
 			return errors.Wrapf(err, "failed to list hosts in compute cluster with ID %s", clusterRef)
 		}
 
 		for _, host := range hosts {
 			var mhost mo.HostSystem
-			err := host.Properties(context.TODO(), host.Reference(), []string{"summary"}, &mhost)
+			err := host.Properties(ctx, host.Reference(), []string{"summary"}, &mhost)
 			if err != nil {
 				return errors.Wrapf(err, "failed to get summary for host with ID %s", host.Reference())
 			}
@@ -146,7 +146,7 @@ func (l *VSphereEventListener) prefillHosts() error {
 	return nil
 }
 
-func (l *VSphereEventListener) prefillBaseVMs() error {
+func (l *VSphereEventListener) prefillBaseVMs(ctx context.Context) error {
 	if len(l.config.BaseVMPaths) == 0 {
 		// Skip if no base VM path, for backwards compatibility with v1.0.0
 		return nil
@@ -154,12 +154,12 @@ func (l *VSphereEventListener) prefillBaseVMs() error {
 
 	finder := find.NewFinder(l.client.Client, true)
 	for _, baseVMPath := range l.config.BaseVMPaths {
-		folder, err := finder.Folder(context.TODO(), baseVMPath)
+		folder, err := finder.Folder(ctx, baseVMPath)
 		if err != nil {
 			return errors.Wrapf(err, "failed to find base vm folder with path %s", baseVMPath)
 		}
 
-		children, err := folder.Children(context.TODO())
+		children, err := folder.Children(ctx)
 		if err != nil {
 			return errors.Wrapf(err, "failed to list children of base vm folder with path %s", baseVMPath)
 		}
@@ -171,7 +171,7 @@ func (l *VSphereEventListener) prefillBaseVMs() error {
 			}
 
 			var mvm mo.VirtualMachine
-			err := vm.Properties(context.TODO(), vm.Reference(), []string{"config"}, &mvm)
+			err := vm.Properties(ctx, vm.Reference(), []string{"config"}, &mvm)
 			if err != nil {
 				return errors.Wrapf(err, "failed to get config for base VM with ID %s", vmRef.Reference())
 			}

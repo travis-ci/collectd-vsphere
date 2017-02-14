@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"os"
@@ -108,6 +109,8 @@ func main() {
 }
 
 func mainAction(c *cli.Context) error {
+	ctx := context.Background()
+
 	logrus.SetFormatter(&logrus.TextFormatter{DisableColors: true})
 	logger := logrus.WithField("pid", os.Getpid())
 	logger.Info("collectd-vsphere starting")
@@ -181,7 +184,7 @@ func mainAction(c *cli.Context) error {
 	}, statsCollector, logger.WithField("component", "vsphere-event-listener"))
 
 	panicErr, _ := raven.CapturePanicAndWait(func() {
-		err := eventListener.Start()
+		err := eventListener.Start(ctx)
 		if err != nil {
 			raven.CaptureErrorAndWait(err, nil)
 			logger.WithField("err", err).Fatal("event listener errored")
