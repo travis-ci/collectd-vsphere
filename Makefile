@@ -11,7 +11,10 @@ GENERATED_VAR := main.GeneratedString
 GENERATED_VALUE ?= $(shell date -u +'%Y-%m-%dT%H:%M:%S%z')
 COPYRIGHT_VAR := main.CopyrightString
 COPYRIGHT_VALUE ?= $(shell grep -i ^copyright LICENSE | sed 's/^[Cc]opyright //')
+DOCKER_IMAGE_REPO ?= travisci/collectd-vsphere
+DOCKER_DEST ?= $(DOCKER_IMAGE_REPO):$(VERSION_VALUE)
 
+DOCKER ?= docker
 GOPATH := $(shell echo $${GOPATH%%:*})
 GOBUILD_LDFLAGS ?= \
     -X '$(VERSION_VAR)=$(VERSION_VALUE)' \
@@ -47,6 +50,10 @@ crossbuild: deps
 		-ldflags "$(GOBUILD_LDFLAGS)" $(MAIN_PACKAGE)
 	GOARCH=amd64 GOOS=linux go build $(GOBUILDFLAGS) -o build/linux/amd64/collectd-vsphere \
 		-ldflags "$(GOBUILD_LDFLAGS)" $(MAIN_PACKAGE)
+
+.PHONY: docker-build
+docker-build:
+	$(DOCKER) build -t $(DOCKER_DEST) .
 
 .PHONY: distclean
 distclean:
